@@ -1,4 +1,4 @@
-Shader "Xiexe/StandardLightingDitheredTransparent"
+Shader "Xiexe/StandardLightingDitheredFade"
 {
     Properties
     {
@@ -64,7 +64,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         ENDCG
 
         CGPROGRAM
-        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha
+        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha:fade
         ENDCG
 
         Pass

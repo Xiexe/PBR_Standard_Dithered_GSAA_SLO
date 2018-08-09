@@ -1,60 +1,71 @@
 Shader "Xiexe/StandardLightingDithered"
 {
-	Properties
-	{
-		_MainTex("MainTex", 2D) = "white" {}
-		[HDR]_ColorTint("Color Tint", Color) = (1,1,1,1)
-		[Normal]_BumpMap("Normal", 2D) = "bump" {}
-		_MetallicGlossMap("Metallic", 2D) = "white" {}
-		_Metallic("Metallic", Range(0,1)) = 1
-		_Glossiness("Smoothness", Range(0,1)) = 1
-		_EmissionMap("Emission Map", 2D) = "white" {}
-		[HDR]_EmissionColor("Emission Color", Color) = (0,0,0,0)
-		_NoiseScale("Dithering Scale", Range(0,0.2)) = 0.001
-		
-	
+    Properties
+    {
+        // Albedo Map and Tint Color
+        _MainTex("MainTex", 2D) = "white" {}
+        [HDR]_Color("Color Tint", Color) = (1,1,1,1)
 
+        // Normal Map
+        [Normal]_BumpMap("Normal", 2D) = "bump" {}
 
-		[HideInInspector] _texcoord( "", 2D ) = "white" {}
-		[HideInInspector] __dirty( "", Int ) = 1
-	}
+        // Metallic and Smoothness
+        _MetallicGlossMap("Metallic", 2D) = "white" {}
+        _Metallic("Metallic", Range(0,1)) = 1
+        _Glossiness("Smoothness", Range(0,1)) = 1
 
-	SubShader
-	{
-		Tags{ "RenderType" = "Opaque"  "Queue" = "Geometry+0" }
-		Cull Back
-		CGINCLUDE
-		#include "UnityPBSLighting.cginc"
-		#include "Lighting.cginc"
-		#pragma target 3.0
-		#define MOD3 float3(443.8975,397.2973, 491.1871)
-		#ifdef UNITY_PASS_SHADOWCASTER
-			#undef INTERNAL_DATA
-			#undef WorldReflectionVector
-			#undef WorldNormalVector
-			#define INTERNAL_DATA half3 internalSurfaceTtoW0; half3 internalSurfaceTtoW1; half3 internalSurfaceTtoW2;
-			#define WorldReflectionVector(data,normal) reflect (data.worldRefl, half3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal)))
-			#define WorldNormalVector(data,normal) fixed3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal))
-		#endif
+        // Ambient Occlusion Map
+        _OcclusionMap("Occlusion", 2D) = "white" {}
+        _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
 
-       #include "StandardLightingModelDithered.cginc"
+        // Emission
+        _EmissionMap("Emission Map", 2D) = "white" {}
+        [HDR]_EmissionColor("Emission Color", Color) = (0,0,0,1)
 
-		inline void LightingStandardCustomLighting_GI( inout SurfaceOutputCustomLightingCustom s, UnityGIInput data, inout UnityGI gi )
-		{
-			s.GIData = data;
-		}
+        // Dithering
+        _NoiseScale("Dithering Scale", Range(0,0.2)) = 0.01
 
-		void surf( Input i , inout SurfaceOutputCustomLightingCustom o )
-		{
-			o.SurfInput = i;
-			o.Normal = float3(0,0,1);
-		}
+        // Specular Lightmap Occlusion
+        _SpecularLightmapOcclusion("Specular Lightmap Occlusion Scale", Range(0,1)) = 1
 
-		ENDCG
-		CGPROGRAM
-		#pragma surface surf StandardCustomLighting keepalpha fullforwardshadows
+        // Hacks
+        [HideInInspector] _texcoord("", 2D) = "white" {}
+        [HideInInspector] __dirty("", Int) = 1
+    }
 
-		ENDCG
-	}
-	Fallback "Diffuse"
+    SubShader
+    {
+        Tags{ "RenderType" = "Opaque"  "Queue" = "Geometry+0" }
+        Cull Back
+
+        CGINCLUDE
+        #include "UnityPBSLighting.cginc"
+        #include "Lighting.cginc"
+        #pragma target 3.0
+
+        #ifdef UNITY_PASS_SHADOWCASTER
+            #undef INTERNAL_DATA
+            #undef WorldReflectionVector
+            #undef WorldNormalVector
+            #define INTERNAL_DATA half3 internalSurfaceTtoW0; half3 internalSurfaceTtoW1; half3 internalSurfaceTtoW2;
+            #define WorldReflectionVector(data,normal) reflect (data.worldRefl, half3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal)))
+            #define WorldNormalVector(data,normal) fixed3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal))
+        #endif
+
+        #include "StandardLightingModelDithered.cginc"
+
+        // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
+        // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
+        // #pragma instancing_options assumeuniformscaling
+        UNITY_INSTANCING_CBUFFER_START(Props)
+        // put more per-instance properties here
+        UNITY_INSTANCING_CBUFFER_END
+
+        ENDCG
+
+        CGPROGRAM
+        #pragma surface surf DitheredStandard fullforwardshadows
+        ENDCG
+    }
+    Fallback "Diffuse"
 }
