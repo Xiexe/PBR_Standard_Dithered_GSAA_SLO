@@ -1,4 +1,4 @@
-Shader "Xiexe/StandardLightingDitheredTransparent"
+Shader "Xiexe/StandardLightingDitheredFade-1"
 {
     Properties
     {
@@ -32,7 +32,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
 
     SubShader
     {
-        Tags{ "RenderType" = "Transparent"  "Queue" = "Transparent" }
+        Tags{ "RenderType" = "Transparent"  "Queue" = "Transparent-1" }
         Cull Back
 
         CGINCLUDE
@@ -53,7 +53,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         ENDCG
 
         CGPROGRAM
-        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha
+        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha:fade
         ENDCG
 
         Pass
