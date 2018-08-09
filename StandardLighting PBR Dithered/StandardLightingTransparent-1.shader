@@ -1,4 +1,4 @@
-Shader "Xiexe/StandardLightingDitheredFade-1"
+Shader "Xiexe/StandardLightingDitheredTransparent-1"
 {
     Properties
     {

@@ -106,7 +106,7 @@ void surf(Input i , inout SurfaceOutputDitheredStandard o)
 
     // Normal Map
     float2 uv_Normal = i.uv_texcoord * _BumpMap_ST.xy + _BumpMap_ST.zw;
-    o.Normal = WorldNormalVector(i, UnpackNormal(tex2D(_BumpMap, uv_Normal)));
+    o.Normal = UnpackNormal(tex2D(_BumpMap, uv_Normal));
 
     // Emission
     float2 uv_EmissionMap = i.uv_texcoord * _EmissionMap_ST.xy + _EmissionMap_ST.zw;
