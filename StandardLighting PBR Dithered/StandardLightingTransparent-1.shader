@@ -1,4 +1,4 @@
-Shader "Xiexe/StandardLightingDitheredTransparent"
+Shader "Xiexe/StandardLightingDitheredTransparent-1"
 {
     Properties
     {
@@ -32,7 +32,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
 
     SubShader
     {
-        Tags{ "RenderType" = "Transparent"  "Queue" = "Transparent" }
+        Tags{ "RenderType" = "Transparent"  "Queue" = "Transparent-1" }
         Cull Back
 
         CGINCLUDE
