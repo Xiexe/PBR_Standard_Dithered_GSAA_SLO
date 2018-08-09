@@ -34,7 +34,8 @@ struct SurfaceOutputDitheredStandard
     half Occlusion;
     fixed Alpha;
     float3 Dithering;
-    UnityGIInput GIData;
+    float Attenuation;
+    float SpecularLightmapOcclusion;
 };
 
 uniform float4 _Color;
@@ -53,10 +54,26 @@ uniform float4 _MetallicGlossMap_ST;
 float _Glossiness;
 float _Metallic;
 float _NoiseScale;
+float _SpecularLightmapOcclusion;
+
 
 inline void LightingDitheredStandard_GI(inout SurfaceOutputDitheredStandard s, UnityGIInput data, inout UnityGI gi)
 {
-    s.GIData = data;
+    // Global Illumination and Environment Reflections
+    #ifdef UNITY_PASS_FORWARDBASE
+        Unity_GlossyEnvironmentData unityGlossyEnvironmentData = UnityGlossyEnvironmentSetup(s.Smoothness, data.worldViewDir, s.Normal, float3(0, 0, 0));
+        gi = UnityGlobalIllumination(data, s.Occlusion, s.Normal, unityGlossyEnvironmentData);
+    #endif
+
+
+    #ifdef LIGHTMAP_ON
+        // Quick hack to kill specular in lightmap shadows
+        half4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, data.lightmapUV.xy);
+        half3 bakedColor = DecodeLightmap(bakedColorTex);
+        gi.indirect.specular *= lerp(1.0, saturate(Luminance(bakedColor)), s.SpecularLightmapOcclusion);
+    #endif
+
+    s.Attenuation = data.atten;
 }
 
 inline half4 LightingDitheredStandard(inout SurfaceOutputDitheredStandard s, half3 viewDir, UnityGI gi)
@@ -72,23 +89,14 @@ inline half4 LightingDitheredStandard(inout SurfaceOutputDitheredStandard s, hal
     standardSurfaceOutput.Occlusion = s.Occlusion;
     standardSurfaceOutput.Alpha = s.Alpha;
 
-    // Global Illumination and Environment Reflections
-    UnityGIInput data = s.GIData;
-    data.light = gi.light;
-    UnityGI unityGlobalIlluminationResult = gi;
-    #ifdef UNITY_PASS_FORWARDBASE
-        Unity_GlossyEnvironmentData unityGlossyEnvironmentData = UnityGlossyEnvironmentSetup(standardSurfaceOutput.Smoothness, data.worldViewDir, standardSurfaceOutput.Normal, float3(0, 0, 0));
-        unityGlobalIlluminationResult = UnityGlobalIllumination(data, standardSurfaceOutput.Occlusion, standardSurfaceOutput.Normal, unityGlossyEnvironmentData);
-    #endif
-
     // Standard Lighting
-    float3 standardLightingResult = LightingStandard(standardSurfaceOutput, viewDir, unityGlobalIlluminationResult).rgb;
+    float3 standardLightingResult = LightingStandard(standardSurfaceOutput, viewDir, gi).rgb;
 
     // Final Color
     half4 finalColor = half4(0, 0, 0, 1);
     finalColor.rgb = standardLightingResult;
     finalColor.rgb += standardSurfaceOutput.Emission;
-    finalColor.rgb += (s.Dithering * data.atten);
+    finalColor.rgb += (s.Dithering * s.Attenuation);
 
     // Alpha
     finalColor.a = s.Alpha;
@@ -131,6 +139,9 @@ void surf(Input i , inout SurfaceOutputDitheredStandard o)
 
     // Compute Dithering
     o.Dithering = (ditherNoiseFuncHigh(i.uv_texcoord.xy) - 0.5) * 2 * _NoiseScale;
+
+    // Specular Lightmap Occlusion
+    o.SpecularLightmapOcclusion = _SpecularLightmapOcclusion;
 
     return;
 }

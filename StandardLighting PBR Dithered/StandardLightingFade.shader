@@ -15,15 +15,18 @@ Shader "Xiexe/StandardLightingDitheredFade"
         _Glossiness("Smoothness", Range(0,1)) = 1
 
         // Ambient Occlusion Map
-        _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
         _OcclusionMap("Occlusion", 2D) = "white" {}
+        _OcclusionStrength("Strength", Range(0.0, 1.0)) = 1.0
 
         // Emission
         _EmissionMap("Emission Map", 2D) = "white" {}
-        [HDR]_EmissionColor("Emission Color", Color) = (0,0,0,0)
+        [HDR]_EmissionColor("Emission Color", Color) = (0,0,0,1)
 
         // Dithering
         _NoiseScale("Dithering Scale", Range(0,0.2)) = 0.01
+
+        // Specular Lightmap Occlusion
+        _SpecularLightmapOcclusion("Specular Lightmap Occlusion Scale", Range(0,1)) = 1
 
         // Hacks
         [HideInInspector] _texcoord("", 2D) = "white" {}
@@ -50,6 +53,14 @@ Shader "Xiexe/StandardLightingDitheredFade"
         #endif
 
         #include "StandardLightingModelDithered.cginc"
+
+        // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
+        // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
+        // #pragma instancing_options assumeuniformscaling
+        UNITY_INSTANCING_CBUFFER_START(Props)
+        // put more per-instance properties here
+        UNITY_INSTANCING_CBUFFER_END
+
         ENDCG
 
         CGPROGRAM
