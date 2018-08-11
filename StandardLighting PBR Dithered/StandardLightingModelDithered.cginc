@@ -135,7 +135,7 @@ void surf(Input i , inout SurfaceOutputDitheredStandard o)
     // Ambient Occlusion
     float2 uv_OcclusionMap = i.uv_texcoord * _OcclusionMap_ST.xy + _OcclusionMap_ST.zw;
     float4 occlusion = tex2D(_OcclusionMap, uv_OcclusionMap);
-    o.Occlusion = occlusion;
+    o.Occlusion = lerp(1.0, occlusion, _OcclusionStrength);
 
     // Compute Dithering
     o.Dithering = (ditherNoiseFuncHigh(i.uv_texcoord.xy) - 0.5) * 2 * _NoiseScale;
