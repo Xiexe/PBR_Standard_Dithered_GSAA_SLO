@@ -23,7 +23,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         [HDR]_EmissionColor("Emission Color", Color) = (0,0,0,1)
 
         // Dithering
-        _NoiseScale("Dithering Scale", Range(0,0.2)) = 0.01
+        _NoiseScale("Dithering Scale", Range(0,0.2)) = 0.001
 
         // Specular Lightmap Occlusion
         _SpecularLightmapOcclusion("Specular Lightmap Occlusion Scale", Range(0,1)) = 1
