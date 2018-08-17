@@ -51,6 +51,7 @@ uniform float4 _EmissionMap_ST;
 uniform float4 _EmissionColor;
 uniform sampler2D _MetallicGlossMap;
 uniform float4 _MetallicGlossMap_ST;
+
 float _Glossiness;
 float _Metallic;
 float _NoiseScale;
@@ -70,7 +71,7 @@ inline void LightingDitheredStandard_GI(inout SurfaceOutputDitheredStandard s, U
         // Quick hack to kill specular in lightmap shadows
         half4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, data.lightmapUV.xy);
         half3 bakedColor = DecodeLightmap(bakedColorTex);
-        gi.indirect.specular *= lerp(1.0, saturate(Luminance(bakedColor)), s.SpecularLightmapOcclusion);
+        gi.indirect.specular *= lerp(1.0, pow(length(bakedColor), 0.5), s.SpecularLightmapOcclusion);
     #endif
 
     s.Attenuation = data.atten;
@@ -130,7 +131,7 @@ void surf(Input i , inout SurfaceOutputDitheredStandard o)
     float3 vNormalWsDdx = ddx(i.worldNormal.xyz);
     float3 vNormalWsDdy = ddy(i.worldNormal.xyz);
     float flGeometricRoughnessFactor = pow(saturate(max(dot(vNormalWsDdx.xyz, vNormalWsDdx.xyz), dot(vNormalWsDdy.xyz, vNormalWsDdy.xyz))), 0.333);
-    o.Smoothness = min(o.Smoothness, 1.0 - flGeometricRoughnessFactor); // Ensure we don’t double-count roughness if normal map encodes geometric roughness
+    o.Smoothness = min(o.Smoothness, 1.0 - flGeometricRoughnessFactor); // Ensure we donï¿½t double-count roughness if normal map encodes geometric roughness
 
     // Ambient Occlusion
     float2 uv_OcclusionMap = i.uv_texcoord * _OcclusionMap_ST.xy + _OcclusionMap_ST.zw;

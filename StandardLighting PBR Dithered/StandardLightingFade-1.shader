@@ -1,6 +1,6 @@
 Shader "Xiexe/StandardLightingDitheredFade-1"
 {
-    Properties
+ Properties
     {
         // Albedo Map and Tint Color
         _MainTex("MainTex", 2D) = "white" {}
@@ -28,6 +28,13 @@ Shader "Xiexe/StandardLightingDitheredFade-1"
         // Specular Lightmap Occlusion
         _SpecularLightmapOcclusion("Specular Lightmap Occlusion Scale", Range(0,1)) = 1
 
+        // Tessellation and Heightmap
+        _Tess("Tessellation Amount", Range(1,50)) = 0
+        _minDist("Minimum Distance", Float) = 1
+        _maxDist("Maximum Distance", Float) = 5
+        _Heightmap("Heightmap", 2D) = "black" {}
+        _Displacement("Displacement Amount", Range(0,1)) = 0.1
+
         // Hacks
         [HideInInspector] _texcoord("", 2D) = "white" {}
         [HideInInspector] __dirty("", Int) = 1
@@ -41,6 +48,7 @@ Shader "Xiexe/StandardLightingDitheredFade-1"
         CGINCLUDE
         #include "UnityPBSLighting.cginc"
         #include "Lighting.cginc"
+                #include "Tessellation.cginc"
         #pragma target 3.0
 
         #ifdef UNITY_PASS_SHADOWCASTER
@@ -51,6 +59,36 @@ Shader "Xiexe/StandardLightingDitheredFade-1"
             #define WorldReflectionVector(data,normal) reflect (data.worldRefl, half3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal)))
             #define WorldNormalVector(data,normal) fixed3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal))
         #endif
+// tess functions
+        struct appdata {
+            float4 vertex : POSITION;
+            float4 tangent : TANGENT;
+            float3 normal : NORMAL;
+            float2 texcoord : TEXCOORD0;
+            float2 texcoord1 : TEXCOORD1;
+            float2 texcoord2 : TEXCOORD2;
+        };
+
+        float _Tess;
+        float _minDist;
+        float _maxDist;
+
+        float4 tessDistance (appdata v0, appdata v1, appdata v2) {
+            float minDist = _minDist;
+            float maxDist = _maxDist;
+            return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _Tess);
+        }
+
+//displace based on height
+        uniform sampler2D _Heightmap;
+        uniform float4 _Heightmap_ST;
+        float _Displacement;
+
+        void vert (inout appdata v)
+        {
+            float d = tex2Dlod(_Heightmap, float4(v.texcoord.xy,0,0)).r * _Displacement;
+            v.vertex.xyz += v.normal * d;
+        }
 
         #include "StandardLightingModelDithered.cginc"
 
@@ -64,7 +102,7 @@ Shader "Xiexe/StandardLightingDitheredFade-1"
         ENDCG
 
         CGPROGRAM
-        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha:fade
+        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha:fade tessellate:tessDistance vertex:vert
         ENDCG
 
         Pass
@@ -143,4 +181,5 @@ Shader "Xiexe/StandardLightingDitheredFade-1"
         }
     }
     Fallback "Diffuse"
+        CustomEditor "XS_PBR_Editor"
 }
