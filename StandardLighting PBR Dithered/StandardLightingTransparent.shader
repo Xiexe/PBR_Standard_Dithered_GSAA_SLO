@@ -29,11 +29,11 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         _SpecularLightmapOcclusion("Specular Lightmap Occlusion Scale", Range(0,1)) = 1
 
         // Tessellation and Heightmap
-        _Tess("Tessellation Amount", Range(1,50)) = 0
+        _Tess("Tessellation Amount", Range(1,50)) = 1
         _minDist("Minimum Distance", Float) = 1
         _maxDist("Maximum Distance", Float) = 5
-        _Heightmap("Heightmap", 2D) = "black" {}
-        _Displacement("Displacement Amount", Range(0,1)) = 0.1
+        _ParallaxMap("Height Map", 2D) = "black" {}
+        _Parallax("Height Scale", Range(0,1)) = 0.02
 
         // Hacks
         [HideInInspector] _texcoord("", 2D) = "white" {}
@@ -48,8 +48,15 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         CGINCLUDE
         #include "UnityPBSLighting.cginc"
         #include "Lighting.cginc"
-                #include "Tessellation.cginc"
-        #pragma target 3.0
+        #include "Tessellation.cginc"
+
+        #pragma shader_feature _NORMALMAP
+        #pragma shader_feature _EMISSION
+        #pragma shader_feature _METALLICGLOSSMAP
+        #pragma shader_feature _PARALLAXMAP
+        #pragma shader_feature _OCCLUSIONMAP
+
+        #pragma target 5.0
 
         #ifdef UNITY_PASS_SHADOWCASTER
             #undef INTERNAL_DATA
@@ -59,36 +66,6 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
             #define WorldReflectionVector(data,normal) reflect (data.worldRefl, half3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal)))
             #define WorldNormalVector(data,normal) fixed3(dot(data.internalSurfaceTtoW0,normal), dot(data.internalSurfaceTtoW1,normal), dot(data.internalSurfaceTtoW2,normal))
         #endif
-// tess functions
-        struct appdata {
-            float4 vertex : POSITION;
-            float4 tangent : TANGENT;
-            float3 normal : NORMAL;
-            float2 texcoord : TEXCOORD0;
-            float2 texcoord1 : TEXCOORD1;
-            float2 texcoord2 : TEXCOORD2;
-        };
-
-        float _Tess;
-        float _minDist;
-        float _maxDist;
-
-        float4 tessDistance (appdata v0, appdata v1, appdata v2) {
-            float minDist = _minDist;
-            float maxDist = _maxDist;
-            return UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _Tess);
-        }
-
-//displace based on height
-        uniform sampler2D _Heightmap;
-        uniform float4 _Heightmap_ST;
-        float _Displacement;
-
-        void vert (inout appdata v)
-        {
-            float d = tex2Dlod(_Heightmap, float4(v.texcoord.xy,0,0)).r * _Displacement;
-            v.vertex.xyz += v.normal * d;
-        }
 
         #include "StandardLightingModelDithered.cginc"
 
