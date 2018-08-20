@@ -48,7 +48,6 @@ Shader "Xiexe/StandardLightingDitheredTransparent-1"
         CGINCLUDE
         #include "UnityPBSLighting.cginc"
         #include "Lighting.cginc"
-        #include "Tessellation.cginc"
 
         #pragma shader_feature _NORMALMAP
         #pragma shader_feature _EMISSION
@@ -79,7 +78,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent-1"
         ENDCG
 
         CGPROGRAM
-        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha tessellate:tessDistance vertex:vert
+        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha
         ENDCG
 
         Pass

@@ -1,8 +1,6 @@
 #ifndef STANDARD_LIGHTING_MODEL_DITHERED
 #define STANDARD_LIGHTING_MODEL_DITHERED
 
-#include "Tessellation.cginc"
-
 #define MOD3 float3(443.8975,397.2973, 491.1871)
 
 float ditherNoiseFuncLow(float2 p)
@@ -63,11 +61,6 @@ uniform float _Tess;
 uniform float _minDist;
 uniform float _maxDist;
 
-//displace based on height
-uniform sampler2D _ParallaxMap;
-uniform float4 _ParallaxMap_ST;
-uniform float _Parallax;
-
 struct appdata {
     float4 vertex : POSITION;
     float4 tangent : TANGENT;
@@ -88,7 +81,7 @@ inline void LightingDitheredStandard_GI(inout SurfaceOutputDitheredStandard s, U
     // Quick hack to kill specular in lightmap shadows
     half4 bakedColorTex = UNITY_SAMPLE_TEX2D(unity_Lightmap, data.lightmapUV.xy);
     half3 bakedColor = DecodeLightmap(bakedColorTex);
-    gi.indirect.specular *= lerp(1.0, pow(length(bakedColor), 0.5), s.SpecularLightmapOcclusion);
+    gi.indirect.specular *= max(0, lerp(1.0, pow(length(bakedColor), 0.5), s.SpecularLightmapOcclusion));
 #endif
 
     s.Attenuation = data.atten;
@@ -120,35 +113,6 @@ inline half4 LightingDitheredStandard(inout SurfaceOutputDitheredStandard s, hal
     finalColor.a = s.Alpha;
 
     return finalColor;
-}
-
-float4 tessDistance(appdata v0, appdata v1, appdata v2) {
-    float3 pos0 = mul(unity_ObjectToWorld,v0.vertex).xyz;
-    float3 pos1 = mul(unity_ObjectToWorld,v1.vertex).xyz;
-    float3 pos2 = mul(unity_ObjectToWorld,v2.vertex).xyz;
-
-    float minDist = _minDist;
-    float maxDist = _maxDist;
-
-    float4 tess;
-    if (UnityWorldViewFrustumCull(pos0, pos1, pos2, maxDist))
-    {
-        tess = 0.0f;
-    }
-    else
-    {
-        tess = UnityDistanceBasedTess(v0.vertex, v1.vertex, v2.vertex, minDist, maxDist, _Tess);
-    }
-
-    return tess;
-}
-
-void vert(inout appdata v)
-{
-    #ifdef _PARALLAXMAP
-        float d = tex2Dlod(_ParallaxMap, float4(v.texcoord.xy, 0, 0)).r * _Parallax;
-        v.vertex.xyz += v.normal * d;
-    #endif
 }
 
 void surf(Input i, inout SurfaceOutputDitheredStandard o)

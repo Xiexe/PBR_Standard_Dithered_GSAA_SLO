@@ -29,11 +29,6 @@ public class XS_PBR_Editor : ShaderGUI
     MaterialProperty emissionColor;
     MaterialProperty noiseScale;
     MaterialProperty sloScale;
-    MaterialProperty tessellationScale;
-    MaterialProperty minDist;
-    MaterialProperty maxDist;
-    MaterialProperty heightMap;
-    MaterialProperty heightMapScale;
 
     public override void OnGUI(MaterialEditor m_MaterialEditor, MaterialProperty[] props)
     {
@@ -52,11 +47,6 @@ public class XS_PBR_Editor : ShaderGUI
             emissionColor = ShaderGUI.FindProperty("_EmissionColor", props);
             noiseScale = ShaderGUI.FindProperty("_NoiseScale", props);
             sloScale = ShaderGUI.FindProperty("_SpecularLightmapOcclusion", props);
-            tessellationScale = ShaderGUI.FindProperty("_Tess", props);
-            minDist = ShaderGUI.FindProperty("_minDist", props);
-            maxDist = ShaderGUI.FindProperty("_maxDist", props);
-            heightMap = ShaderGUI.FindProperty("_ParallaxMap", props);
-            heightMapScale = ShaderGUI.FindProperty("_Parallax", props);
         }
 
         EditorGUI.BeginChangeCheck();
@@ -110,27 +100,6 @@ public class XS_PBR_Editor : ShaderGUI
             m_MaterialEditor.ShaderProperty(noiseScale, noiseScale.displayName);
             m_MaterialEditor.ShaderProperty(sloScale, "Lightmap Occlusion Scale");
             EditorGUI.indentLevel -= 1;
-
-            EditorGUILayout.Space();
-            GUILayout.Label("TESSELLATION SETTINGS", new GUIStyle(EditorStyles.miniLabel)
-            {
-                wordWrap = true,
-                fontSize = 12
-            });
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapTex, heightMap, heightMapScale);
-
-            EditorGUI.indentLevel += 1;
-            m_MaterialEditor.TextureScaleOffsetProperty(heightMap);
-            EditorGUI.indentLevel -= 1;
-
-            EditorGUILayout.Space();
-            EditorGUI.indentLevel += 2;
-            m_MaterialEditor.ShaderProperty(tessellationScale, tessellationScale.displayName);
-            m_MaterialEditor.ShaderProperty(minDist, minDist.displayName);
-            m_MaterialEditor.ShaderProperty(maxDist, maxDist.displayName);
-            EditorGUI.indentLevel -= 2;
-
 
             SetKeyword(material, "_NORMALMAP", material.GetTexture("_BumpMap"));
             SetKeyword(material, "_METALLICGLOSSMAP", material.GetTexture("_MetallicGlossMap"));

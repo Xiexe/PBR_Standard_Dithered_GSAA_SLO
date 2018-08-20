@@ -28,13 +28,6 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         // Specular Lightmap Occlusion
         _SpecularLightmapOcclusion("Specular Lightmap Occlusion Scale", Range(0,1)) = 1
 
-        // Tessellation and Heightmap
-        _Tess("Tessellation Amount", Range(1,50)) = 1
-        _minDist("Minimum Distance", Float) = 1
-        _maxDist("Maximum Distance", Float) = 5
-        _ParallaxMap("Height Map", 2D) = "black" {}
-        _Parallax("Height Scale", Range(0,1)) = 0.02
-
         // Hacks
         [HideInInspector] _texcoord("", 2D) = "white" {}
         [HideInInspector] __dirty("", Int) = 1
@@ -79,7 +72,7 @@ Shader "Xiexe/StandardLightingDitheredTransparent"
         ENDCG
 
         CGPROGRAM
-        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha tessellate:tessDistance vertex:vert
+        #pragma surface surf DitheredStandard keepalpha fullforwardshadows alpha
         ENDCG
 
         Pass
